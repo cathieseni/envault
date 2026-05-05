@@ -44,7 +44,12 @@ def load_secrets(project_name: str) -> dict:
     if not secrets_path.exists():
         return {}
     with open(secrets_path, "r") as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Secrets file for project '{project_name}' is corrupted: {e}"
+            ) from e
 
 
 def save_secrets(project_name: str, secrets: dict) -> None:
@@ -52,3 +57,18 @@ def save_secrets(project_name: str, secrets: dict) -> None:
     secrets_path = get_project_dir(project_name) / "secrets.json"
     with open(secrets_path, "w") as f:
         json.dump(secrets, f, indent=2)
+
+
+def delete_project(project_name: str) -> bool:
+    """Remove a project's secrets file and directory from the vault.
+
+    Returns True if the project directory existed and was removed,
+    False if the project was not found.
+    """
+    import shutil
+
+    project_dir = get_vault_dir() / "projects" / project_name
+    if not project_dir.exists():
+        return False
+    shutil.rmtree(project_dir)
+    return True
