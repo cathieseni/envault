@@ -60,6 +60,13 @@ def test_parse_skips_invalid_lines():
     assert result == {"GOOD": "yes"}
 
 
+def test_parse_blank_lines_ignored():
+    """Blank lines and whitespace-only lines should be silently skipped."""
+    content = "\n  \nFOO=bar\n\nBAZ=qux\n  \n"
+    result = parse_dotenv(content)
+    assert result == {"FOO": "bar", "BAZ": "qux"}
+
+
 # --- import_from_file ---
 
 def test_import_from_file_basic(project, tmp_path):
@@ -97,3 +104,16 @@ def test_import_overwrites_when_flag_set(project, tmp_path):
 def test_import_raises_for_missing_file(project):
     with pytest.raises(FileNotFoundError):
         import_from_file(project, "/nonexistent/.env")
+
+
+def test_import_returns_correct_counts_mixed(project, tmp_path):
+    """When some keys exist and some are new, counts should reflect each case."""
+    from envault.secrets import set_secret
+    set_secret(project, "EXISTING", "old")
+    env_file = tmp_path / ".env"
+    env_file.write_text("EXISTING=updated\nNEW_KEY=fresh\n")
+    imported, skipped = import_from_file(project, str(env_file))
+    assert imported == 1
+    assert skipped == 1
+    assert get_secret(project, "EXISTING") == "old"
+    assert get_secret(project, "NEW_KEY") == "fresh"
