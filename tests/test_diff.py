@@ -54,6 +54,23 @@ def test_compute_diff_unchanged():
     assert result["changed"] == {}
 
 
+def test_compute_diff_empty_dicts():
+    """Diffing two empty dicts should return all-empty result."""
+    result = _compute_diff({}, {})
+    assert result["added"] == {}
+    assert result["removed"] == {}
+    assert result["changed"] == {}
+    assert result["unchanged"] == []
+
+
+def test_compute_diff_both_empty_vs_populated():
+    """Diffing an empty old dict against a populated new dict marks all keys as added."""
+    result = _compute_diff({}, {"X": "1", "Y": "2"})
+    assert result["added"] == {"X": "1", "Y": "2"}
+    assert result["removed"] == {}
+    assert result["changed"] == {}
+
+
 def test_diff_snapshots(project):
     set_secret(project, "DB_URL", "postgres://old")
     snap_a = create_snapshot(project)
