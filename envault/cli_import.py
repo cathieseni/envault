@@ -26,9 +26,16 @@ def cmd_import(args: argparse.Namespace) -> None:
     except KeyError as exc:
         print(f"Error: project not found — {exc}", file=sys.stderr)
         sys.exit(1)
+    except PermissionError as exc:
+        print(f"Error: permission denied — {exc}", file=sys.stderr)
+        sys.exit(1)
+    except ValueError as exc:
+        print(f"Error: invalid input — {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build and return the argument parser for the import command."""
     parser = argparse.ArgumentParser(
         prog="envault-import",
         description="Import secrets from a .env file into an envault project.",
@@ -50,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> None:
+    """Parse arguments and dispatch to the import command."""
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.vault_dir:
