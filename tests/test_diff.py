@@ -100,4 +100,17 @@ def test_diff_snapshot_vs_current(project):
 
 def test_diff_snapshot_missing_raises(project):
     with pytest.raises(FileNotFoundError):
-        diff_snapshots(project, "ghost_a.json", "ghost_b.json")
+        diff_snapshots(project, "nonexistent-snap-a", "nonexistent-snap-b")
+
+
+def test_diff_snapshots_identical(project):
+    """Diffing a snapshot against itself should show no changes."""
+    set_secret(project, "DB_URL", "postgres://same")
+    set_secret(project, "API_KEY", "unchanged")
+    snap = create_snapshot(project)
+
+    result = diff_snapshots(project, snap, snap)
+    assert result["added"] == {}
+    assert result["removed"] == {}
+    assert result["changed"] == {}
+    assert set(result["unchanged"]) == {"DB_URL", "API_KEY"}
