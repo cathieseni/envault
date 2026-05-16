@@ -80,3 +80,19 @@ def list_expiring_soon(project_name: str, within_seconds: int = 86400) -> List[s
         key for key, ts in data.items()
         if now <= ts <= now + within_seconds
     ]
+
+
+def purge_expired(project_name: str) -> List[str]:
+    """Remove expiry records for all expired keys and return the purged key names.
+
+    This does not delete the secrets themselves — it only cleans up stale
+    entries from the expiry tracking file.
+    """
+    data = _load_expiry(project_name)
+    now = time.time()
+    expired_keys = [key for key, ts in data.items() if now > ts]
+    for key in expired_keys:
+        del data[key]
+    if expired_keys:
+        _save_expiry(project_name, data)
+    return expired_keys
