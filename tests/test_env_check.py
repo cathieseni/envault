@@ -71,6 +71,15 @@ def test_has_issues_true_when_missing(project):
     assert has_issues(results)
 
 
+def test_has_issues_true_when_expired(project):
+    """has_issues should return True when at least one secret is expired."""
+    set_secret(project, "OLD_KEY", "secret")
+    past_ts = time.time() - 1
+    set_expiry(project, "OLD_KEY", past_ts)
+    results = check_project(project, required_keys=["OLD_KEY"])
+    assert has_issues(results)
+
+
 def test_unknown_project_raises():
     with pytest.raises(KeyError):
         check_project("nonexistent_project")
