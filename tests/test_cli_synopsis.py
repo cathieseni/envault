@@ -36,33 +36,33 @@ def run(args, env):
     )
 
 
+def make_env(isolated_vault):
+    """Return an environment dict with ENVAULT_DIR set to the isolated vault path."""
+    return {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
+
+
 def test_show_synopsis_exits_zero(setup_project, isolated_vault):
-    env = {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
-    result = run(["show", "webapp"], env)
+    result = run(["show", "webapp"], make_env(isolated_vault))
     assert result.returncode == 0
 
 
 def test_show_synopsis_contains_project_name(setup_project, isolated_vault):
-    env = {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
-    result = run(["show", "webapp"], env)
+    result = run(["show", "webapp"], make_env(isolated_vault))
     assert "webapp" in result.stdout
 
 
 def test_show_synopsis_verbose_shows_keys(setup_project, isolated_vault):
-    env = {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
-    result = run(["show", "webapp", "--verbose"], env)
+    result = run(["show", "webapp", "--verbose"], make_env(isolated_vault))
     assert "DB_PASS" in result.stdout
     assert "API_KEY" in result.stdout
 
 
 def test_show_synopsis_missing_project_exits_nonzero(isolated_vault):
-    env = {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
-    result = run(["show", "ghost"], env)
+    result = run(["show", "ghost"], make_env(isolated_vault))
     assert result.returncode != 0
     assert "not found" in result.stderr
 
 
 def test_show_synopsis_verbose_shows_tags(setup_project, isolated_vault):
-    env = {**os.environ, "ENVAULT_DIR": str(isolated_vault)}
-    result = run(["show", "webapp", "-v"], env)
+    result = run(["show", "webapp", "-v"], make_env(isolated_vault))
     assert "database" in result.stdout
